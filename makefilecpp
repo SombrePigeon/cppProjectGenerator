@@ -1,0 +1,77 @@
+#Makefile
+
+CC=clang
+CXX=clang++
+CFLAGS=-Weverything -std=c20 -stdlib=libc
+CXXFLAGS=-Weverything -std=c++20 -stdlib=libc++
+LDFLAGS=-std=c++20 -stdlib=libc++ -lpthread
+
+#répertoires
+INCLUDE_DIR=include
+SRC_DIR=src
+OBJ_DIR=obj
+COMPIL_DIR=compil
+
+#VPATH = $(OBJ_DIR):$(INCLUDE_DIR)
+#VPATH = $(SRC_DIR):$(OBJ_DIR):$(INCLUDE_DIR)
+
+SRC=
+SRCPP=main.cpp
+SRC_PATH=${addprefix $(OBJ_DIR)/, $(SRC)}
+SRCPP_PATH=${addprefix $(OBJ_DIR)/, $(SRCPP)}
+OBJC=$(SRC_PATH:.c=.c.o)
+OBJCPP=$(SRCPP_PATH:.cpp=.cpp.o)
+OBJ=${OBJC} $(OBJCPP)
+
+COMPIL_C=${addprefix $(COMPIL_DIR)/, $(SRC)}
+COMPIL_CPP=${addprefix $(COMPIL_DIR)/, $(SRCPP)}
+COMPIL=$(COMPIL_C:=.cpc.json) $(COMPIL_CPP:=.cpc.json)
+
+NAME=$(shell basename $(CURDIR))
+
+all: makefile $(NAME)
+	@echo compilation de $^ terminée
+
+$(NAME): $(OBJ)
+	@echo edition des liens
+	$(CXX) -I$(INCLUDE_DIR) -o $@ $^ $(LDFLAGS)
+
+$(OBJ_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp
+	$(CXX) -I$(INCLUDE_DIR) $(CFLAGS) -c $^ -o $@
+
+$(OBJ_DIR)/%.c.o: $(SRC_DIR)/%.c
+	$(CC) -I$(INCLUDE_DIR) $(CFLAGS) -c $^ -o $@
+
+compile_commands.json: $(COMPIL)
+	echo "[" > $@
+	cat $^ >> $@
+	echo "]" >> $@
+
+$(COMPIL_DIR)/%.cpp.cpc.json: $(SRC_DIR)/%.cpp
+	echo "	{" > $@
+	echo "		\"directory\" : \"$(PWD)\"," >> $@
+	echo "		\"command\" : \"$(CXX) -I$(INCLUDE_DIR) $(CFLAGS) -c $(PWD)/$^ -o $(PWD)/$(^:.cpp=.o)\"," >> $@
+	echo "		\"file\" : \"$(PWD)$^\"" >> $@
+	echo "	}," >> $@
+
+$(COMPIL_DIR)/%.c.cpc.json: $(SRC_DIR)/%.c
+	echo "	{" > $@
+	echo "		\"directory\" : \"$(PWD)\"," >> $@
+	echo "		\"command\" : \"$(C) -I$(INCLUDE_DIR) $(CFLAGS) -c $(PWD)/$^ -o $(PWD)/$(^:.c=.o)\"," >> $@
+	echo "		\"file\" : \"$(PWD)$^\"" >> $@
+	echo "	}," >> $@
+
+#$(SRC_DIR)/%.cpp: $(INCLUDE_DIR).h
+#	create the cpp from the header
+#nope
+
+#creer le header
+
+clean:
+	rm -rf $(OBJ_DIR)/*
+	rm -rf $(COMPIL_DIR)/*
+	rm -rf compile_commands.json
+	rm -f $(NAME)
+
+#autres options
+.PHONY: all clean
