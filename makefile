@@ -18,6 +18,7 @@ VPATH = $(OBJ_DIR):$(INCLUDE_DIR)
 	mkdir $@/$(INCLUDE_DIR)
 	mkdir $@/$(SRC_DIR)
 	mkdir $@/$(OBJ_DIR)
+	mkdir $@/$(COMPIL_DIR)
 	echo "-I./$(INCLUDE_DIR)" > $@/.clang-complete
 	cp makefilecpp	$@/makefile
 	cp main.cpp $@/$(SRC_DIR)/main.cpp
